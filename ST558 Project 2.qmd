@@ -1,0 +1,115 @@
+---
+title: "ST 558 Project 2"
+format: html
+author: "Taylor Cesarski"
+---
+```{r}
+library(tidyverse)
+library(jsonlite)
+library(httr)
+#Get all info about a country.
+get_country_info <- function(country_name){
+#Store the base url before the inputs as start_url.
+  start_url <- "https://restcountries.com/v3.1/name/"
+#Based on documentation provided on API, paste together formatting of initial url, and inputs for what the final url should look like.. Use paste0 to not add spaces.
+  url <- paste0(start_url, 
+                country_name)
+#Use the GET function to contact API.
+    return_data <- GET(url)
+#Parse through data using fromJSON function from jsonlite package.
+  parsed_data <- fromJSON(rawToChar(return_data$content))
+#Convert the article information to a tibble.
+tibble_info <- as_tibble(parsed_data)
+#Return ed_info tibble.
+tibble_info <- tibble(
+  name = parsed_data$name$common,
+  capital = parsed_data$capital[[1]],
+  region = parsed_data$region,
+  area = parsed_data$area,
+  population = parsed_data$population,
+  car_side = parsed_data$car$side,
+  continent = parsed_data$continents[[1]])
+
+return(tibble_info)
+}
+```
+Function 2
+```{r}
+#Get all info about countries from a particular region.
+get_region_info <- function(region_name){
+#Store the base url before the inputs as start_url.
+  start_url <- "https://restcountries.com/v3.1/region/"
+#Based on documentation provided on API, paste together formatting of initial url, and inputs for what the final url should look like.. Use paste0 to not add spaces.
+  url <- paste0(start_url, 
+                region_name)
+#Use the GET function to contact API.
+    return_data <- GET(url)
+#Parse through data using fromJSON function from jsonlite package.
+  parsed_data <- fromJSON(rawToChar(return_data$content))
+#Convert the article information to a tibble.
+tibble_info <- as_tibble(parsed_data)
+#Return ed_info tibble.
+tibble_info <- tibble(
+  Country_Name = parsed_data$name$common,
+  Region = parsed_data$region,
+  Area = parsed_data$area,
+  Population = parsed_data$population,
+  Car_Side_Driving = parsed_data$car$side)
+
+return(tibble_info)
+}
+
+region_info <- get_region_info("asia")
+
+```
+
+Get all info about countries that speak a particular language.
+
+```{r}
+#Get all info about countries from a particular region.
+get_language_info <- function(language_name){
+#Store the base url before the inputs as start_url.
+  start_url <- "https://restcountries.com/v3.1/lang/"
+#Based on documentation provided on API, paste together formatting of initial url, and inputs for what the final url should look like.. Use paste0 to not add spaces.
+  url <- paste0(start_url, 
+                language_name)
+#Use the GET function to contact API.
+    return_data <- GET(url)
+#Parse through data using fromJSON function from jsonlite package.
+  parsed_data <- fromJSON(rawToChar(return_data$content))
+#Convert the article information to a tibble.
+tibble_info <- as_tibble(parsed_data)
+#Return ed_info tibble.
+tibble_info <- tibble(
+  Country_Name = parsed_data$name$common,
+  Region = parsed_data$region,
+  Area = parsed_data$area,
+  Population = parsed_data$population,
+  Car_Side_Driving = parsed_data$car$side)
+
+return(tibble_info)
+}
+
+lang_info <- get_language_info("spanish")
+
+```
+```{r}
+wrapper_function <- function(function_type, name){
+  if(function_type == "name"){
+    return(get_country_info(name))
+  } else if(function_type == "region"){
+    return(get_region_info(name))
+  } else if(function_type == "language"){
+    return(get_language_info(name))
+  } else{
+    print("Error. Invalid Data Type")
+  }
+}
+
+wrapper_function("language", "spanish")
+wrapper_function("region", "asia")
+wrapper_function("name", "france")
+```
+
+
+
