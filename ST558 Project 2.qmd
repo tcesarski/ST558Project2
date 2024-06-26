@@ -7,36 +7,54 @@ author: "Taylor Cesarski"
 library(tidyverse)
 library(jsonlite)
 library(httr)
-#Get all info about a country.
-get_country_info <- function(country_name){
+#Get all info about a country. Type all to get all countries.
+get_country_info <- function(country_name,...){
 #Store the base url before the inputs as start_url.
-  start_url <- "https://restcountries.com/v3.1/name/"
+  start_url <- "https://restcountries.com/v3.1/"
 #Based on documentation provided on API, paste together formatting of initial url, and inputs for what the final url should look like.. Use paste0 to not add spaces.
-  url <- paste0(start_url, 
+  if(country_name == "all"){
+    url <- paste0(start_url,
+                  "all")
+  }
+  else{
+  url <- paste0(start_url,
+                "name/",
                 country_name)
+  }
 #Use the GET function to contact API.
     return_data <- GET(url)
 #Parse through data using fromJSON function from jsonlite package.
   parsed_data <- fromJSON(rawToChar(return_data$content))
-#Convert the article information to a tibble.
+if(length(list(...)) != 0){
+selected_columns <- unlist(list(...))
+parsed_data <- parsed_data[, c("name", selected_columns), drop = FALSE]
+}
+  else{
+    selected_columns <- names(parsed_data)
+  }
+  #Convert the article information to a tibble.
 tibble_info <- as_tibble(parsed_data)
 #Return ed_info tibble.
 tibble_info <- tibble(
-  name = parsed_data$name$common,
-  capital = parsed_data$capital[[1]],
-  region = parsed_data$region,
-  area = parsed_data$area,
-  population = parsed_data$population,
-  car_side = parsed_data$car$side,
-  continent = parsed_data$continents[[1]])
+  Country_Name = parsed_data$name$common,
+  Region = parsed_data$region,
+  Area = parsed_data$area,
+  Population = parsed_data$population,
+  Car_Side_Driving = parsed_data$car$side,
+  Independence = parsed_data$independent) |>
+  arrange(Country_Name) |>
+  drop_na()
 
 return(tibble_info)
 }
+
+get_country_info("germany", "name", "area", "population")
+country <- get_country_info("all", "independent")
 ```
 Function 2
 ```{r}
 #Get all info about countries from a particular region.
-get_region_info <- function(region_name){
+get_region_info <- function(region_name,...){
 #Store the base url before the inputs as start_url.
   start_url <- "https://restcountries.com/v3.1/region/"
 #Based on documentation provided on API, paste together formatting of initial url, and inputs for what the final url should look like.. Use paste0 to not add spaces.
@@ -46,6 +64,13 @@ get_region_info <- function(region_name){
     return_data <- GET(url)
 #Parse through data using fromJSON function from jsonlite package.
   parsed_data <- fromJSON(rawToChar(return_data$content))
+if(length(list(...)) != 0){
+selected_columns <- unlist(list(...))
+parsed_data <- parsed_data[, c("name", selected_columns), drop = FALSE]
+}
+  else{
+    selected_columns <- names(parsed_data)
+  }
 #Convert the article information to a tibble.
 tibble_info <- as_tibble(parsed_data)
 #Return ed_info tibble.
@@ -54,12 +79,17 @@ tibble_info <- tibble(
   Region = parsed_data$region,
   Area = parsed_data$area,
   Population = parsed_data$population,
-  Car_Side_Driving = parsed_data$car$side)
+  Car_Side_Driving = parsed_data$car$side,
+  Independence = parsed_data$independent) |>
+
+  arrange(Country_Name) |>
+  drop_na()
 
 return(tibble_info)
+
 }
 
-region_info <- get_region_info("asia")
+region_info <- get_region_info("asia", "name", "car")
 
 ```
 
@@ -67,7 +97,7 @@ Get all info about countries that speak a particular language.
 
 ```{r}
 #Get all info about countries from a particular region.
-get_language_info <- function(language_name){
+get_language_info <- function(language_name, ...){
 #Store the base url before the inputs as start_url.
   start_url <- "https://restcountries.com/v3.1/lang/"
 #Based on documentation provided on API, paste together formatting of initial url, and inputs for what the final url should look like.. Use paste0 to not add spaces.
@@ -77,6 +107,13 @@ get_language_info <- function(language_name){
     return_data <- GET(url)
 #Parse through data using fromJSON function from jsonlite package.
   parsed_data <- fromJSON(rawToChar(return_data$content))
+if(length(list(...)) != 0){
+selected_columns <- unlist(list(...))
+parsed_data <- parsed_data[, c("name", selected_columns), drop = FALSE]
+}
+  else{
+    selected_columns <- names(parsed_data)
+  }
 #Convert the article information to a tibble.
 tibble_info <- as_tibble(parsed_data)
 #Return ed_info tibble.
@@ -85,31 +122,94 @@ tibble_info <- tibble(
   Region = parsed_data$region,
   Area = parsed_data$area,
   Population = parsed_data$population,
-  Car_Side_Driving = parsed_data$car$side)
+  Car_Side_Driving = parsed_data$car$side,
+  Independence = parsed_data$independent) |>
+  
+  arrange(Country_Name)
 
 return(tibble_info)
 }
 
-lang_info <- get_language_info("spanish")
+lang_info <- get_language_info("spanish", "name", "area")
 
 ```
+
+
 ```{r}
-wrapper_function <- function(function_type, name){
+wrapper_function <- function(function_type, name, ...){
   if(function_type == "name"){
-    return(get_country_info(name))
+    return(get_country_info(name, ...))
   } else if(function_type == "region"){
-    return(get_region_info(name))
+    return(get_region_info(name, ...))
   } else if(function_type == "language"){
-    return(get_language_info(name))
+    return(get_language_info(name, ...))
   } else{
     print("Error. Invalid Data Type")
   }
 }
 
-wrapper_function("language", "spanish")
+wrapper_function("language", "spanish", "name", "area", "independent")
+wrapper_function("region", "asia", "name", "population")
+wrapper_function("name", "france", "name", "car")
 wrapper_function("region", "asia")
-wrapper_function("name", "france")
 ```
+
+
+#Create graphical and numerical summaries.
+
+```{r}
+europe_data <- wrapper_function("region", "europe")
+
+car_side_table <- table(europe_data$Car_Side_Driving)
+car_side_table
+
+asia_data <- wrapper_function("region", "asia")
+car_side_table <- table(asia_data$Car_Side_Driving)
+car_side_table
+
+
+
+#Create one way contingency table of side of the road driving.
+
+get_car_table <- function(type, input_name){
+  if(type == "region"){
+  new_tibble <- wrapper_function("region", input_name)
+  }
+  else if(type == "language"){
+  new_tibble <- wrapper_function("language", input_name)
+  }
+  else{
+    print("Error. Invalid inputs.")
+  }
+  table(new_tibble$Car_Side_Driving)
+}
+
+get_car_table("language", "swahili")
+
+```
+Create a two way contingency table based on independence and car side driving by region or language.
+```{r}
+
+get_car_and_ind_table <- function(type, input_name){
+  if(type == "region"){
+  new_tibble <- wrapper_function("region", input_name) |>
+    drop_na()
+  }
+  else if(type == "language"){
+  new_tibble <- wrapper_function("language", input_name) |>
+    drop_na()
+  }
+  else{
+    print("Error. Invalid inputs.")
+  }
+  table(new_tibble$Car_Side_Driving, new_tibble$Independence)
+  }
+
+get_car_and_ind_table("region", "africa")
+```
+
+
+
 
 
 
