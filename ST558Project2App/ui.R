@@ -37,10 +37,21 @@ ui <- dashboardPage(
                     title = "Purpose of Tabs",
                     "There are two additional tabs in this app: The Data Downlaod tab and the Data Exploration tab. The Data Download tab will allow you to specify changes to the data you want and display the data selected. You can also save this data as a file. The Data Exploration tab will allow you to produce graphical and numerical summaries based on this data."),
               )),
-      tabItem(tabName = "download", "Data Download Content"),
+      tabItem(tabName = "download",
+              fluidRow(
+                box(title = "Choose Filtering Method",
+                    selectInput("filter", "Filter by:", 
+                                choices = c("Country Name", "Region", "Language", "Population", "Area"))),
+              uiOutput("filter")),
+              fluidRow(
+              dataTableOutput("country_table"),
+              dataTableOutput("region_table"),
+              dataTableOutput("language_table"),
+              dataTableOutput("population_table"),
+              dataTableOutput("area_table")),
+
       tabItem(tabName = "explore", "Data Exploration Content")
-    ))
-  )
+    ))))
 
 
 

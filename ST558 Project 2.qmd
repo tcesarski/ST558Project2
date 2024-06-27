@@ -11,6 +11,8 @@ library(httr)
 get_country_info <- function(country_name){
 #Store the base url before the inputs as start_url.
   start_url <- "https://restcountries.com/v3.1/"
+  
+  encoded_name <- URLencode(country_name)
 #Based on documentation provided on API, paste together formatting of initial url, and inputs for what the final url should look like.. Use paste0 to not add spaces.
   if(country_name == "all"){
     url <- paste0(start_url,
@@ -41,13 +43,15 @@ tibble_info <- tibble(
   Landlocked = parsed_data$landlocked,
   UN_Member = parsed_data$unMember)
   
-return(tibble_info)
+#return(tibble_info)
+return(url)
 }
 
 get_country_info("germany")
 get_country_info("all")
 get_country_info("zambia")
 get_country_info("all")
+get_country_info("antarctica")
 country <- get_country_info("all")
 country
 ```
@@ -553,5 +557,12 @@ plot_boxplot
 install.packages("shinydashboard")
 library(shinydashboard)
 ```
+
+```{r}
+country <- country |>
+  arrange(Country_Name)
+country
+```
+
 
 
