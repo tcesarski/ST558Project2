@@ -528,8 +528,7 @@ ggraph + geom_bar()
 
 ```
 # Function 3: Scatterplot of Population and Area by Region or Subregion.
-```{r}
-df
+```{r, error = TRUE}
 plot_g <- ggplot(df, aes(x = Area, y = Population, color = UN_Member)) +  geom_point() +
   labs(x = "Population",
        y = "Area", 
@@ -550,5 +549,9 @@ plot_boxplot
 
 ```
 
+```{r}
+install.packages("shinydashboard")
+library(shinydashboard)
+```
 
 
