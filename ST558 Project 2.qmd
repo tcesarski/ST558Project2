@@ -8,7 +8,7 @@ library(tidyverse)
 library(jsonlite)
 library(httr)
 #Get all info about a country. Type all to get all countries.
-get_country_info <- function(country_name,...){
+get_country_info <- function(country_name){
 #Store the base url before the inputs as start_url.
   start_url <- "https://restcountries.com/v3.1/"
 #Based on documentation provided on API, paste together formatting of initial url, and inputs for what the final url should look like.. Use paste0 to not add spaces.
@@ -25,20 +25,13 @@ get_country_info <- function(country_name,...){
     return_data <- GET(url)
 #Parse through data using fromJSON function from jsonlite package.
   parsed_data <- fromJSON(rawToChar(return_data$content))
-if(length(list(...)) != 0){
-selected_columns <- unlist(list(...))
-parsed_data <- parsed_data[, c("name", selected_columns), drop = FALSE]
-}
-  else{
-    selected_columns <- names(parsed_data)
-  }
   #Convert the article information to a tibble.
 tibble_info <- as_tibble(parsed_data)
-parsed_data$num_borders <- sapply(parsed_data$borders, length)
 
 #Return ed_info tibble.
 tibble_info <- tibble(
   Country_Name = parsed_data$name$common,
+  Capital = as.character(parsed_data$capital),
   Region = parsed_data$region,
   Subregion = parsed_data$subregion,
   Area = parsed_data$area,
@@ -46,21 +39,22 @@ tibble_info <- tibble(
   Car_Side_Driving = parsed_data$car$side,
   Independence = parsed_data$independent,
   Landlocked = parsed_data$landlocked,
-  Capital = parsed_data$capital,
-  UN_Member = parsed_data$unMember,
-  Num_Borders = parsed_data$num_borders)
+  UN_Member = parsed_data$unMember)
   
 return(tibble_info)
 }
 
-get_country_info("germany", "name", "area", "population")
+get_country_info("germany")
 get_country_info("all")
-country <- get_country_info("all", "independent")
+get_country_info("zambia")
+get_country_info("all")
+country <- get_country_info("all")
+country
 ```
 Function 2
 ```{r}
 #Get all info about countries from a particular region.
-get_region_info <- function(region_name,...){
+get_region_info <- function(region_name){
 #Store the base url before the inputs as start_url.
   start_url <- "https://restcountries.com/v3.1/region/"
 #Based on documentation provided on API, paste together formatting of initial url, and inputs for what the final url should look like.. Use paste0 to not add spaces.
@@ -70,22 +64,14 @@ get_region_info <- function(region_name,...){
     return_data <- GET(url)
 #Parse through data using fromJSON function from jsonlite package.
   parsed_data <- fromJSON(rawToChar(return_data$content))
-if(length(list(...)) != 0){
-selected_columns <- unlist(list(...))
-parsed_data <- parsed_data[, c("name", selected_columns), drop = FALSE]
-}
-  else{
-    selected_columns <- names(parsed_data)
-  }
 #Convert the article information to a tibble.
 tibble_info <- as_tibble(parsed_data)
-parsed_data$num_borders <- sapply(parsed_data$borders, length)
-
 #Return as an integer using map_int. Apply the length function.
 
 #Return ed_info tibble.
 tibble_info <- tibble(
   Country_Name = parsed_data$name$common,
+  Capital = as.character(parsed_data$capital),
   Region = parsed_data$region,
   Subregion = parsed_data$subregion,
   Area = parsed_data$area,
@@ -93,9 +79,7 @@ tibble_info <- tibble(
   Car_Side_Driving = parsed_data$car$side,
   Independence = parsed_data$independent,
   Landlocked = parsed_data$landlocked,
-  Capital = parsed_data$capital,
-  UN_Member = parsed_data$unMember,
-  Num_Borders = parsed_data$num_borders) |>
+  UN_Member = parsed_data$unMember) |>
 
   arrange(Country_Name)
 
@@ -103,7 +87,7 @@ return(tibble_info)
 
 }
 
-region_info <- get_region_info("asia")
+get_region_info("asia")
 
 ```
 
@@ -111,7 +95,7 @@ Get all info about countries that speak a particular language.
 
 ```{r}
 #Get all info about countries from a particular region.
-get_language_info <- function(language_name, ...){
+get_language_info <- function(language_name){
 #Store the base url before the inputs as start_url.
   start_url <- "https://restcountries.com/v3.1/lang/"
 #Based on documentation provided on API, paste together formatting of initial url, and inputs for what the final url should look like.. Use paste0 to not add spaces.
@@ -121,23 +105,13 @@ get_language_info <- function(language_name, ...){
     return_data <- GET(url)
 #Parse through data using fromJSON function from jsonlite package.
   parsed_data <- fromJSON(rawToChar(return_data$content))
-if(length(list(...)) != 0){
-selected_columns <- unlist(list(...))
-parsed_data <- parsed_data[, c("name", selected_columns), drop = FALSE]
-}
-  else{
-    selected_columns <- names(parsed_data)
-  }
 #Convert the article information to a tibble.
 tibble_info <- as_tibble(parsed_data)
-parsed_data$num_borders <- sapply(parsed_data$borders, length)
-
-print(parsed_data$languages)
 
 #Return ed_info tibble.
 tibble_info <- tibble(
   Country_Name = parsed_data$name$common,
-  Capital = parsed_data$capital,
+  Capital = as.character(parsed_data$capital),
   Region = parsed_data$region,
   Subregion = parsed_data$subregion,
   Area = parsed_data$area,
@@ -145,8 +119,7 @@ tibble_info <- tibble(
   Car_Side_Driving = parsed_data$car$side,
   Independence = parsed_data$independent,
   Landlocked = parsed_data$landlocked,
-  UN_Member = parsed_data$unMember,
-  Borders = parsed_data$num_borders) |>
+  UN_Member = parsed_data$unMember) |>
   
   arrange(Country_Name)
 
@@ -155,13 +128,11 @@ return(tibble_info)
 get_language_info("spanish")
 lang_info <- get_language_info("spanish")
 
-parsed_data$languages
-
 ```
 
 ```{r}
 #Get all info about countries from a particular region.
-get_pop_info <- function(min_pop = 100, max_pop = 100000,...){
+get_pop_info <- function(min_pop = 0, max_pop = 2000000000){
 #Store the base url before the inputs as start_url.
   start_url <- "https://restcountries.com/v3.1/all/"
 #Based on documentation provided on API, paste together formatting of initial url, and inputs for what the final url should look like.. Use paste0 to not add spaces.
@@ -169,22 +140,13 @@ get_pop_info <- function(min_pop = 100, max_pop = 100000,...){
     return_data <- GET(start_url)
 #Parse through data using fromJSON function from jsonlite package.
   parsed_data <- fromJSON(rawToChar(return_data$content))
-if(length(list(...)) != 0){
-selected_columns <- unlist(list(...))
-parsed_data <- parsed_data[, c("name", selected_columns), drop = FALSE]
-}
-  else{
-    selected_columns <- names(parsed_data)
-  }
 #Convert the article information to a tibble.
 tibble_info <- as_tibble(parsed_data)
-parsed_data$num_borders <- sapply(parsed_data$borders, length)
-
 
 #Return ed_info tibble.
 tibble_info <- tibble(
   Country_Name = parsed_data$name$common,
-  Capital = parsed_data$capital,
+  Capital = as.character(parsed_data$capital),
   Region = parsed_data$region,
   Subregion = parsed_data$subregion,
   Area = parsed_data$area,
@@ -192,8 +154,7 @@ tibble_info <- tibble(
   Car_Side_Driving = parsed_data$car$side,
   Independence = parsed_data$independent,
   Landlocked = parsed_data$landlocked,
-  UN_Member = parsed_data$unMember,
-  Borders = parsed_data$num_borders)
+  UN_Member = parsed_data$unMember)
 
 tibble_info <- tibble_info |>
   filter(Population >= min_pop & Population <= max_pop) |>
@@ -201,13 +162,15 @@ tibble_info <- tibble_info |>
 
 return(tibble_info)
 }
-get_pop_info(100000, 20000000)
+get_pop_info(1000, 2000)
+
+get_pop_info(10, 10000)
 
 ```
 
 ```{r}
 #Get all info about countries from a particular region.
-get_area_info <- function(min_area = 100, max_area = 100000,...){
+get_area_info <- function(min_area = 100, max_area = 100000){
 #Store the base url before the inputs as start_url.
   start_url <- "https://restcountries.com/v3.1/all/"
 #Based on documentation provided on API, paste together formatting of initial url, and inputs for what the final url should look like.. Use paste0 to not add spaces.
@@ -215,22 +178,13 @@ get_area_info <- function(min_area = 100, max_area = 100000,...){
     return_data <- GET(start_url)
 #Parse through data using fromJSON function from jsonlite package.
   parsed_data <- fromJSON(rawToChar(return_data$content))
-if(length(list(...)) != 0){
-selected_columns <- unlist(list(...))
-parsed_data <- parsed_data[, c("name", selected_columns), drop = FALSE]
-}
-  else{
-    selected_columns <- names(parsed_data)
-  }
 #Convert the article information to a tibble.
 tibble_info <- as_tibble(parsed_data)
-parsed_data$num_borders <- sapply(parsed_data$borders, length)
-
 
 #Return ed_info tibble.
 tibble_info <- tibble(
   Country_Name = parsed_data$name$common,
-  Capital = parsed_data$capital,
+  Capital = as.character(parsed_data$capital),
   Region = parsed_data$region,
   Subregion = parsed_data$subregion,
   Area = parsed_data$area,
@@ -238,8 +192,7 @@ tibble_info <- tibble(
   Car_Side_Driving = parsed_data$car$side,
   Independence = parsed_data$independent,
   Landlocked = parsed_data$landlocked,
-  UN_Member = parsed_data$unMember,
-  Borders = parsed_data$num_borders)
+  UN_Member = parsed_data$unMember)
 
 tibble_info <- tibble_info |>
   filter(Area >= min_area & Area <= max_area) |>
@@ -248,43 +201,41 @@ tibble_info <- tibble_info |>
 return(tibble_info)
 }
 
-get_area_info()
+get_area_info(0, 200)
 ```
 
 
 
 
-```{r}
-wrapper_function <- function(function_type, name, min, max, ...){
+```{r, error = TRUE}
+
+#Change min default to lowest population, change max default to max population.
+wrapper_function <- function(function_type, name, min = 0, max = 2000000000){
   if(function_type == "name"){
-    return(get_country_info(name, ...))
+    return(get_country_info(name))
   } else if(function_type == "region"){
-    return(get_region_info(name, ...))
+    return(get_region_info(name))
   } else if(function_type == "language"){
-    return(get_language_info(name, ...))
+    return(get_language_info(name))
   } else if(function_type == "population"){
-    return(get_pop_info(min, max, ...))
+    return(get_pop_info(min, max))
   } else if(function_type == "area"){
-    return(get_area_info(min, max, ...))
+    return(get_area_info(min, max))
   } else{
     print("Error. Invalid Data Type")
   }
 }
 
-wrapper_function("language", "spanish", "name", "area", "independent")
-wrapper_function("region", "asia", "name", "population")
-wrapper_function("name", "france", "name", "car")
-wrapper_function("region", "asia")
-wrapper_function("area", min = 100, max = 10000)
-wrapper_function("population", min = 100000, max = 200000)
-wrapper_function("name", "all")
+wrapper_function("name", "france")
+wrapper_function("region", "americas")
+wrapper_function("population", min =10, max =100)
 ```
 
 
 #Create graphical and numerical summaries.
 
 Make one way contingency table for: Independence, Car Side Driving, UN Members, and Landlocked countries based on all countries in a particular region or those who speak a certain language. 
-```{r}
+```{r, error = TRUE}
 get_ind_table <- function(type, input_name){
   if(type == "region"){
   new_tibble <- wrapper_function("region", input_name)
@@ -314,6 +265,8 @@ get_car_table <- function(type, input_name){
   }
   table(new_tibble$Car_Side_Driving)
 }
+
+get_car_table("region", "americas")
 
 #UN Member table. 
 
@@ -367,13 +320,18 @@ get_table <- function(table_type, type, input_name){
 }
 
 get_table("ind", "language", "spanish")
+get_table("car", "language", "english")
+get_table("landlocked", "region", "africa")
+get_table("un", "region", "americas")
+
+
 
 ```
 
 
 
 
-```{r}
+```{r, error = TRUE}
 europe_data <- wrapper_function("region", "europe")
 
 car_side_table <- table(europe_data$Car_Side_Driving)
@@ -404,7 +362,7 @@ get_car_table("language", "french")
 
 ```
 Create a two way contingency table based on independence and car side driving by region or language.
-```{r}
+```{r, error = TRUE}
 
 get_car_and_ind_table <- function(type, input_name){
   if(type == "region"){
@@ -423,20 +381,21 @@ get_car_and_ind_table <- function(type, input_name){
 
 get_car_and_ind_table("region", "africa")
 ```
-```{r}
+
+# Function 1: Tree Map
+
+```{r, error = TRUE}
 install.packages("treemapify")
 library(treemapify)
 
-df <- wrapper_function("name", "all") 
-df
-df <- arrange(df, -Population)
-df_top <- head(df, 25)
-
+data_input <- wrapper_function("name", "all")
+data_input
 
 #Create population treemap of top x number of countries.
 
-pop_treemap <- function(df, x){
-  df_top <- head(df, x)
+pop_treemap <- function(input_data, x){
+  df_arranged <- arrange(input_data, -Population)
+  df_top <- head(df_arranged, x)
   g <- ggplot(df_top, aes(area = Population, fill = Population, label = Country_Name)) +
   geom_treemap() +
   scale_fill_gradient(low = "lightpink", high = "red") +
@@ -447,13 +406,14 @@ pop_treemap <- function(df, x){
   print(g)
 }
 
-pop_treemap(df, 10)
+pop_treemap(data_input, 10)
 
 
 #Create area treemap of top x number of countries.
 
-area_treemap <- function(df, x){
-  df_top <- head(df, x)
+area_treemap <- function(input_data, x){
+  df_arranged <- arrange(input_data, -Area)
+  df_top <- head(df_arranged, x)
   g <- ggplot(df_top, aes(area = Area, fill = Area, label = Country_Name)) +
   geom_treemap() +
   scale_fill_gradient(low = "lightpink", high = "red") +
@@ -476,23 +436,48 @@ wrap_treemap <- function(input_type, df, x){
   }
 }
 
-area_treemap(df, 20)
+area_treemap(data_input, 20)
 
-wrap_treemap("area", df, 10)
+wrap_treemap("area", data_input, 25)
+wrap_treemap("population", data_input, 30)
 ```
 
-Get boxplots of population, area, and bordered countries by region or subregion.
-```{r}
+# Final Plot # 2: Faceting and dynamically generating histogram.
+
+Get boxplots of population and area by region or subregion.
+```{r, error = TRUE, fig.height=10, fig.width=12}
 #Get histograms of population by region.
 library(ggplot2)
-g <- ggplot(df, aes(x = Population, fill = Region)) +
-  geom_histogram() +
-  facet_wrap(~Region)
-g
+
+get_histogram <- function(input_data, x_val, y_val){
+  g <- ggplot(input_data |> drop_na({{y_val}}), aes_string(x = x_val, fill = y_val)) +
+    geom_histogram(bins = 20) +
+    facet_wrap(y_val) +
+    scale_fill_discrete(name = y_val) +
+    scale_x_continuous(labels = scales::number_format()) +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)) +
+    labs(x = x_val,
+         y = "Count",
+         title = paste0(x_val, " by ", y_val))
+  
+  print(g)
+}
+
+pop <- wrapper_function("population", min = 100, max = 10000)
+pop
+class(pop)
+
+
+get_histogram(data_input, "Population", "Region")
+get_histogram(data_input, "Area", "Independence")
+get_histogram(data_input, "Population", "UN_Member")
+get_histogram(data_input, "Area", "Car_Side_Driving")
+get_histogram(pop, "Population", "Region")
+
 
 ```
 Create scatterplot of area and population and color code by region or  subregion.
-```{r}
+```{r, error = TRUE}
 plot_g <- ggplot(df, aes(x = Population, y = Area, color = Region)) +  geom_point() +
   labs(x = "Population",
        y = "Area", 
@@ -513,9 +498,57 @@ plot_g_2 <- ggplot(df, aes(x = Population, y = Area, color = Subregion)) +
 plot_g_2
 
 ```
+# Function 2 - Final (Grouped Bar Chart)
+Grouped Bar Chart. User choose two categorical variables.
+```{r}
+
+get_bar <- function(data_input, cat1, cat2){
+  ggraph <- ggplot(data_input |> drop_na(cat2) |> drop_na(cat1), aes_string(x = cat1, fill = cat2))
+  ggraph + geom_bar() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
+  labs(x = cat1,
+       y = "Count",
+       title = paste0("Countries by ", cat1, " and ", cat2))
+}
+
+get_bar(data_input, "Car_Side_Driving", "UN_Member")
+
+get_bar(data_input, "Region", "UN_Member")
+
+get_bar(data_input, "Subregion", "Independence")
+
+get_bar(data_input, "Region", "Subregion")
 
 
 
+ggraph <- ggplot(data_input, aes(x = Car_Side_Driving, fill = UN_Member))
+ggraph + geom_bar()
+
+
+
+```
+# Function 3: Scatterplot of Population and Area by Region or Subregion.
+```{r}
+df
+plot_g <- ggplot(df, aes(x = Area, y = Population, color = UN_Member)) +  geom_point() +
+  labs(x = "Population",
+       y = "Area", 
+       fill = "Independence")
+
+plot_g
+
+
+#Make boxplot.
+
+
+plot_boxplot <- ggplot(data_input, aes(x = Region, y = Population, fill = Region)) +
+  geom_boxplot()
+
+plot_boxplot
+
+
+
+```
 
 
 
