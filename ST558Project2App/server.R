@@ -209,6 +209,21 @@ get_scatter <- function(input_data, facet_var){
   print(g)
 }
 
+get_num_sum <- function(dataframe, num_variable, cat_variable){
+  dataframe |>
+    group_by({{cat_variable}}) |>
+    summarize(
+      Mean = mean({{num_variable}}, na.rm = TRUE),
+      Stdev = sd({{num_variable}}, na.rm = TRUE),
+      Min = min({{num_variable}}, na.rm = TRUE),
+      Q1 = quantile({{num_variable}}, 0.25, na.rm = TRUE),
+      Median = median({{num_variable}}, na.rm = TRUE),
+      Q3 = quantile({{num_variable}}, 0.75, na.rm = TRUE),
+      Max = max({{num_variable}}, na.rm = TRUE)
+    )
+}
+
+
 
 
 server <- function(input, output, session) {
@@ -286,10 +301,11 @@ output$filtered_data <- renderDataTable({
                      choices = c("Population", "Area")),
         radioButtons("cat_sum", "Choose a categorical variable",
                      choices = c("Independence", 
-                                 "UN Membership", 
+                                 "UN_Member", 
                                  "Landlocked", 
                                  "Region",
-                                 "Subregion"))
+                                 "Subregion",
+                                 "Car_Side_Driving"))
       )
     } else if(input$summary == "Graphical Displays"){
       selectInput("graph", "Type of Graph",
@@ -371,6 +387,28 @@ output$filtered_data <- renderDataTable({
     two_contingency_table()
   })
   
+  numeric_summaries <- reactive({
+    req(input$summary, input$num_sum, input$cat_sum)
+    if(input$summary == "Numerical Summaries"){
+      numeric_variable <- input$num_sum
+      categorical_variable <- input$cat_sum
+      dataset <- filtered_data()
+      
+      tibble_sum <- get_num_sum(dataset, get(numeric_variable), get(categorical_variable))
+      colnames(tibble_sum)[1] <- categorical_variable
+      return(tibble_sum)
+      
+    }
+  })
+  
+  
+  
+  
+  output$numeric_sum <- renderTable({
+    numeric_summaries()
+  })
+  
+  
   
   
   output$treemap_opt <- renderUI({
@@ -378,7 +416,7 @@ output$filtered_data <- renderDataTable({
     if (input$summary == "Graphical Displays" && input$graph == "Tree Map") {
       selectInput("treemap_var", "Choose a variable for Tree Map",
                   choices = c("Population", "Area"))
-    } else {
+    } else{
       NULL
     }
   })

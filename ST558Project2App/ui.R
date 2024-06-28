@@ -65,26 +65,28 @@ ui <- dashboardPage(
                 uiOutput("summary_out"),
                 uiOutput("treemap_opt"),
                 uiOutput("barchart_opt"),
+                #uiOutput("graph"),
                 uiOutput("hist_opt"),
-                uiOutput("cat1"),
-                uiOutput("cat2"),
-                uiOutput("cat1_table"),
-                uiOutput("cat2_table"),
+                #uiOutput("cat1"),
+                #uiOutput("cat2"),
+                #uiOutput("cat1_table"),
+                #uiOutput("cat2_table"),
                 uiOutput("con1_opt"),
                 uiOutput("con2_opt")),
-                uiOutput("facet_var"),
+                #uiOutput("facet_var"),
                 uiOutput("scatter_opt"),
                 tableOutput("contingency_tab"),
                 tableOutput("contingency_two_tab"),
-              conditionalPanel(
-                condition = "input.summary" == "Graphical Displays",
-                plotOutput("tree_graph"),
-                plotOutput("bar_graph"),
-                plotOutput("facet_histogram"),
-                plotOutput("facet_scatter")
+                tableOutput("numeric_sum"),
+              conditionalPanel("input.graph" == "Tree Map",
+                                plotOutput("tree_graph")),
+              conditionalPanel("input.graph" == "Bar Chart",
+                                plotOutput("bar_graph")),
+              conditionalPanel("input.graph" == "Histograms",
+                                plotOutput("facet_histogram")),
+              conditionalPanel("input.graph" == "Scatterplot",
+                                plotOutput("facet_scatter"))
               )
-              )
-              
                 )
               )
       )

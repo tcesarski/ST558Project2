@@ -544,6 +544,35 @@ plot_g <- ggplot(country, aes(x = Area, y = Population, color = UN_Member)) +  g
 
 plot_g
 
+#Numerical Summaries
+country
+get_num_sum <- function(dataframe, num_variable, cat_variable){
+  dataframe |>
+    group_by({{cat_variable}}) |>
+    summarize(
+      Mean = mean({{num_variable}}, na.rm = TRUE),
+      Stdev = sd({{num_variable}}, na.rm = TRUE),
+      Min = min({{num_variable}}, na.rm = TRUE),
+      Q1 = quantile({{num_variable}}, 0.25, na.rm = TRUE),
+      Median = median({{num_variable}}, na.rm = TRUE),
+      Q3 = quantile({{num_variable}}, 0.75, na.rm = TRUE),
+      Max = max({{num_variable}}, na.rm = TRUE)
+    )
+}
+
+      tibble_sum <- get_num_sum(country, Population, Region)
+      str(tibble_sum)
+
+
+
+
+get_num_sum(country, Population, UN_Member)
+
+
+
+
+
+
 
 #Make boxplot.
 
@@ -573,7 +602,7 @@ make_dot <- function(data_value, quant_var, cat_var){
          y = "Count") +
     scale_fill_discrete(name = cat_var)
 }
-make_dot(country, "Population", "Region")
+make_dot(country, "Population", "UN_Member")
 
 
 #geom point and smooth. facet by cat var
