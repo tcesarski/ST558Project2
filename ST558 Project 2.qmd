@@ -8,6 +8,63 @@ library(tidyverse)
 library(jsonlite)
 library(httr)
 #Get all info about a country. Type all to get all countries.
+
+get_country_info <- function(country_name, chosen_cols){
+  #Store the base url before the inputs as start_url.
+  start_url <- "https://restcountries.com/v3.1/"
+  #Based on documentation provided on API, paste together formatting of initial url, and inputs for what the final url should look like.. Use paste0 to not add spaces.
+encoded_name <- URLencode(country_name)
+  
+  if(country_name == "All Countries"){
+    url <- paste0(start_url, "all")
+  }
+  else{
+    url <- paste0(start_url,
+                  "name/",
+                  encoded_name)
+  }
+print(url)
+  #Use the GET function to contact API.
+  return_data <- GET(url)
+  #Parse through data using fromJSON function from jsonlite package.
+  parsed_data <- fromJSON(rawToChar(return_data$content))
+  #Convert the article information to a tibble.
+  exact_match <- parsed_data$name$common == country_name
+  tibble_info <- as_tibble(parsed_data[exact_match, ])
+
+  
+  #Return ed_info tibble.
+  tibble_info <- tibble(
+    Country_Name = tibble_info$name$common,
+    #Deal with missing values for capital.
+    Capital = ifelse(is.null(tibble_info$capital), NA, 
+                     as.character(tibble_info$capital)),
+    Region = tibble_info$region,
+    #Deal with missing values for subregion.
+    Subregion = ifelse(is.null(tibble_info$subregion), NA, 
+                     as.character(tibble_info$subregion)),
+    Area = tibble_info$area,
+    Population = tibble_info$population,
+    Car_Side_Driving = tibble_info$car$side,
+    Independence = ifelse(is.null(tibble_info$independent), NA, 
+                       as.character(tibble_info$independent)),
+    Landlocked = tibble_info$landlocked,
+    UN_Member = tibble_info$unMember)
+  
+  tibble_info <- tibble_info |>
+    select(Country_Name, chosen_cols)
+  
+  return(tibble_info)
+}
+
+
+get_country_info("France", c("Region", "Subregion"))
+get_country_info("United States", c("Region", "Population"))
+get_country_info("All Countries", c("Region", "Area"))
+get_country_info("China", "Region")
+
+
+
 get_country_info <- function(country_name){
 #Store the base url before the inputs as start_url.
   start_url <- "https://restcountries.com/v3.1/"
@@ -399,6 +456,77 @@ get_car_and_ind_table <- function(type, input_name){
   }
 
 get_car_and_ind_table("region", "africa")
+
+two_contingency_table <- reactive({
+    req(input$summary, input$con_tab, input$cat1_tab & input$cat2_tab)
+    if(input$summary == "Contingency Tables" & input$con_tab == "Two Way"){
+      cat1_variable <- input$cat1_tab
+      cat2_variable <- input$cat2_tab
+      two_cat_data <- filtered_data()
+      
+      
+      con_two_table <- table(two_cat_data[[cat1_variable]], two_cat_data[[cat2_variable]])
+      return(con_two_table)
+    } else{
+      NULL
+    }
+  })
+  
+con_2 <- table(country[[""]])
+
+country
+as_tibble(table(country[["UN_Member"]], country[["Landlocked"]]))
+
+
+str(table(country[["UN_Member"]], country[["Landlocked"]]))
+
+country |>
+  drop_na(UN_Member, Landlocked) |>
+  group_by(UN_Member, Landlocked) |>
+  summarize(count = n()) |>
+  pivot_wider(names_from = Landlocked, values_from = count)
+
+
+help(pivot_wider)
+help(as.tibble)
+
+
+
+help(as_tibble)
+table(country[["Landlocked"]])
+      
+      con_two_table |>
+        pivot_wider(names_from = cat2_variable, values_from = cat1_variable)
+
+
+
+
+  output$contingency_two_tab <- renderTable({
+    two_contingency_table()
+  })
+  
+  numeric_summaries <- reactive({
+    req(input$summary, input$num_sum, input$cat_sum)
+    if(input$summary == "Numerical Summaries"){
+      numeric_variable <- input$num_sum
+      categorical_variable <- input$cat_sum
+      dataset <- filtered_data()
+      
+      tibble_sum <- get_num_sum(dataset, get(numeric_variable), get(categorical_variable))
+      colnames(tibble_sum)[1] <- categorical_variable
+      return(tibble_sum)
+      
+    }
+  })
+  
+  #working statically
+  tib_sum <- table(country[["Car_Side_Driving"]], country[["UN_Member"]])
+  colnames(tib_sum)[1] <- "UN_Member"
+  tib_sum
+
+
+
+
 ```
 
 # Function 1: Tree Map
@@ -635,6 +763,10 @@ library(shinydashboard)
 country <- country |>
   arrange(Country_Name)
 country
+
+
+get_country_info()
+get_country_info("All Countries", 1:5)
 ```
 
 
