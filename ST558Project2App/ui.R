@@ -31,27 +31,53 @@ ui <- dashboardPage(
                 box(
                   title = "About This App",
                   "This application allows you to explore data related to countries and create plots, contingency tables, and numeric summaries on different countries individually, regions, subregions, or countries that speak a particular language. The data comes from the REST Countries API. More data about the REST Countries API and its endpoints can be found here:",
-                  tags$a(href = "https://gitlab.com/restcountries/restcountries", "REST Countries API"),
-                ),
-                  box(
+                  tags$a(href = "https://gitlab.com/restcountries/restcountries", "REST Countries API")
+                  ),
+                box(
                     title = "Purpose of Tabs",
-                    "There are two additional tabs in this app: The Data Downlaod tab and the Data Exploration tab. The Data Download tab will allow you to specify changes to the data you want and display the data selected. You can also save this data as a file. The Data Exploration tab will allow you to produce graphical and numerical summaries based on this data."),
-              )),
+                    "There are two additional tabs in this app: The Data Downlaod tab and the Data Exploration tab. The Data Download tab will allow you to specify changes to the data you want and display the data selected. You can also save this data as a file. The Data Exploration tab will allow you to produce graphical and numerical summaries based on this data.")
+              )
+            ),
       tabItem(tabName = "download",
               fluidRow(
                 box(title = "Choose Filtering Method",
                     selectInput("filter", "Filter by:", 
                                 choices = c("Country Name", "Region", "Language", "Population", "Area"))),
-              uiOutput("filter")),
+                box(title = "Select Columns",
+                    checkboxGroupInput("cols", "Columns:",
+                                       choices = c("Capital", "Region", "Subregion",
+                                       "Area", "Population", "Car_Side_Driving",
+                                       "Independence", "Landlocked", "UN_Member"))
+                ),
+                uiOutput("filter")
+              ),
               fluidRow(
-              dataTableOutput("country_table"),
-              dataTableOutput("region_table"),
-              dataTableOutput("language_table"),
-              dataTableOutput("population_table"),
-              dataTableOutput("area_table")),
+              downloadButton("download", "Download Data"),
+              dataTableOutput("filtered_data")
+              )
+            ),
 
-      tabItem(tabName = "explore", "Data Exploration Content")
-    ))))
+      tabItem(tabName = "explore",
+              fluidRow(
+                box(title = "Choose Summary Type",
+                    selectInput("summary", "Summary Type:",
+                                choices = c("Contingency Tables", 
+                                            "Numerical Summaries",
+                                            "Graphical Displays"))),
+                uiOutput("summary_out"),
+                uiOutput("treemap_opt"),
+                uiOutput("barchart_opt"),
+                uiOutput("hist_opt"),
+                uiOutput("con1_opt"),
+                uiOutput("con2_opt"),
+                tableOutput("contingency_tab"),
+                plotOutput("tree_graph"),
+                plotOutput("bar_graph")
+                )
+              )
+      )
+  )
+)
 
 
 

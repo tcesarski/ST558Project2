@@ -21,7 +21,7 @@ get_country_info <- function(country_name){
   else{
   url <- paste0(start_url,
                 "name/",
-                country_name)
+                encoded_name)
   }
 #Use the GET function to contact API.
     return_data <- GET(url)
@@ -43,17 +43,19 @@ tibble_info <- tibble(
   Landlocked = parsed_data$landlocked,
   UN_Member = parsed_data$unMember)
   
-#return(tibble_info)
-return(url)
+return(tibble_info)
 }
 
 get_country_info("germany")
 get_country_info("all")
 get_country_info("zambia")
 get_country_info("all")
-get_country_info("antarctica")
+get_country_info("caribbean netherlands")
+get_country_info("bouvet island")
 country <- get_country_info("all")
+get_country_info("Heard Island and Mcdonald Islands")
 country
+get_country_info("Macau")
 ```
 Function 2
 ```{r}
@@ -90,8 +92,12 @@ tibble_info <- tibble(
 return(tibble_info)
 
 }
-
+get_region_info("africa")
 get_region_info("asia")
+get_region_info("oceania")
+get_region_info("europe")
+get_region_info("americas")
+get_region_info("antarctic")
 
 ```
 
@@ -130,6 +136,7 @@ tibble_info <- tibble(
 return(tibble_info)
 }
 get_language_info("spanish")
+get_language_info("maori")
 lang_info <- get_language_info("spanish")
 
 ```
@@ -229,6 +236,8 @@ wrapper_function <- function(function_type, name, min = 0, max = 2000000000){
     print("Error. Invalid Data Type")
   }
 }
+
+get_language_info("maori")
 
 wrapper_function("name", "france")
 wrapper_function("region", "americas")
