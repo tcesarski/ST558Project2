@@ -4,6 +4,16 @@ format: html
 author: "Taylor Cesarski"
 ---
 ```{r}
+install.packages("tidyverse")
+install.packages("shiny")
+install.packages("jsonlite")
+install.packages("httr")
+install.packages("treemapify")
+install.packages("shinydashboard")
+
+
+library(shiny)
+search()
 library(tidyverse)
 library(jsonlite)
 library(httr)
@@ -769,5 +779,30 @@ get_country_info()
 get_country_info("All Countries", 1:5)
 ```
 
+```{r}
+req_packages <- c("tidyverse", "shiny", "shinydashboard", "jsonlite", "httr", "treemapify")
+
+read_in_pkgs <- function(){
+  library(tidyverse)
+  library(shiny)
+  library(shinydashboard)
+  library(jsonlite)
+  library(httr)
+  library(treemapify)
+}
+read_in_pkgs()
+rm(list = ls())
+
+  library(tidyverse)
+  library(shiny)
+  library(shinydashboard)
+  library(jsonlite)
+  library(httr)
+  library(treemapify)
+
+
+
+
+```
 
 
