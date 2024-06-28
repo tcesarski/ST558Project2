@@ -377,6 +377,12 @@ get_car_table("language", "french")
 Create a two way contingency table based on independence and car side driving by region or language.
 ```{r, error = TRUE}
 
+
+
+
+
+
+
 get_car_and_ind_table <- function(type, input_name){
   if(type == "region"){
   new_tibble <- wrapper_function("region", input_name) |>
@@ -491,24 +497,13 @@ get_histogram(pop, "Population", "Region")
 ```
 Create scatterplot of area and population and color code by region or  subregion.
 ```{r, error = TRUE}
-plot_g <- ggplot(df, aes(x = Population, y = Area, color = Region)) +  geom_point() +
-  labs(x = "Population",
-       y = "Area", 
-       fill = "Region") +
-  geom_smooth(method = lm)
-plot_g
-
-
-df
-
-plot_g_2 <- ggplot(df, aes(x = Population, y = Area, color = Subregion)) +  
-  geom_point() +
-  labs(x = "Population",
-       y = "Area", 
-       fill = "Subregion") +
-  geom_smooth(method = lm)
-
-plot_g_2
+plot_g <- function(data, x_val, y_val, color){
+  ggplot(data, aes_string(x = x_val, y = y_val, color = color)) +  geom_point() +
+  labs(x = x_val,
+       y = y_val, 
+       color = color)
+}
+plot_g(country, "Population", "Area", "Region")
 
 ```
 # Function 2 - Final (Grouped Bar Chart)
@@ -542,7 +537,7 @@ ggraph + geom_bar()
 ```
 # Function 3: Scatterplot of Population and Area by Region or Subregion.
 ```{r, error = TRUE}
-plot_g <- ggplot(df, aes(x = Area, y = Population, color = UN_Member)) +  geom_point() +
+plot_g <- ggplot(country, aes(x = Area, y = Population, color = UN_Member)) +  geom_point() +
   labs(x = "Population",
        y = "Area", 
        fill = "Independence")
@@ -553,10 +548,50 @@ plot_g
 #Make boxplot.
 
 
-plot_boxplot <- ggplot(data_input, aes(x = Region, y = Population, fill = Region)) +
+plot_dotplot<- ggplot(data_input, aes(x = Region, y = Population, fill = Region)) +
   geom_boxplot()
 
 plot_boxplot
+
+make_dot <- function(input_data, num_var, cat_var){
+  ggplot(input_data |> drop_na(num_var) |> drop_na(cat_var), aes_string(x = num_var, y = cat_var))+
+    geom_violin(scale = "count", adjust = 1.5)
+}
+
+make_box(country, "Population", "Region")
+
+install.packages("maps")
+library(maps)
+
+
+#Make a dotplot.
+
+make_dot <- function(data_value, quant_var, cat_var){
+  ggplot(data = data_value, aes_string(x = quant_var, fill = cat_var)) +
+    geom_dotplot(position = "dodge") +
+    labs(x = quant_var,
+         y = "Count") +
+    scale_fill_discrete(name = cat_var)
+}
+make_dot(country, "Population", "Region")
+
+
+#geom point and smooth. facet by cat var
+
+get_scatter <- function(input_data, facet_var){
+  g <- ggplot(input_data |> drop_na({{facet_var}}), aes_string(x = "Population", y = "Area", color = facet_var)) +
+    geom_point() +
+    geom_smooth(method = lm) +
+    facet_wrap(facet_var)
+  print(g)
+}
+
+get_scatter(country, "Subregion")
+
+
+
+
+
 
 
 

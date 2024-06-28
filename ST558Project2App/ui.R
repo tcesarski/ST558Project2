@@ -56,28 +56,39 @@ ui <- dashboardPage(
               dataTableOutput("filtered_data")
               )
             ),
-
       tabItem(tabName = "explore",
-              fluidRow(
-                box(title = "Choose Summary Type",
+              fluidRow(title = "Choose Summary Type",
                     selectInput("summary", "Summary Type:",
                                 choices = c("Contingency Tables", 
                                             "Numerical Summaries",
-                                            "Graphical Displays"))),
+                                            "Graphical Displays")),
                 uiOutput("summary_out"),
                 uiOutput("treemap_opt"),
                 uiOutput("barchart_opt"),
                 uiOutput("hist_opt"),
+                uiOutput("cat1"),
+                uiOutput("cat2"),
+                uiOutput("cat1_table"),
+                uiOutput("cat2_table"),
                 uiOutput("con1_opt"),
-                uiOutput("con2_opt"),
+                uiOutput("con2_opt")),
+                uiOutput("facet_var"),
+                uiOutput("scatter_opt"),
                 tableOutput("contingency_tab"),
+                tableOutput("contingency_two_tab"),
+              conditionalPanel(
+                condition = "input.summary" == "Graphical Displays",
                 plotOutput("tree_graph"),
-                plotOutput("bar_graph")
+                plotOutput("bar_graph"),
+                plotOutput("facet_histogram"),
+                plotOutput("facet_scatter")
+              )
+              )
+              
                 )
               )
       )
-  )
-)
+
 
 
 

@@ -185,6 +185,30 @@ get_bar <- function(data_input, cat1, cat2){
          title = paste0("Countries by ", cat1, " and ", cat2))
 }
 
+get_histogram <- function(input_data, x_val, y_val){
+  g <- ggplot(input_data |> drop_na({{y_val}}), aes_string(x = x_val, fill = y_val)) +
+    geom_histogram(bins = 20) +
+    facet_wrap(y_val) +
+    scale_fill_discrete(name = y_val) +
+    scale_x_continuous(labels = scales::number_format()) +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)) +
+    labs(x = x_val,
+         y = "Count",
+         title = paste0(x_val, " by ", y_val))
+  
+  print(g)
+}
+
+
+get_scatter <- function(input_data, facet_var){
+  g <- ggplot(input_data |> drop_na({{facet_var}}), aes_string(x = "Population", y = "Area", color = facet_var)) +
+    geom_point() +
+    geom_smooth(method = lm) +
+    facet_wrap(facet_var) +
+    labs(title = paste0("Relationship between Population and Area based on ", facet_var))
+  print(g)
+}
+
 
 
 server <- function(input, output, session) {
@@ -288,37 +312,63 @@ output$filtered_data <- renderDataTable({
   
   contingency_table <- reactive({
     req(input$summary, input$con_tab, input$con1_var)
+    if(input$summary == "Contingency Tables" & input$con_tab == "One Way"){
       con1_variable <- input$con1_var
       con_table <- as.data.frame(table(filtered_data()[[con1_variable]]))
       colnames(con_table) <- c(con1_variable, "Count")
       return(con_table)
+    } else{
+      NULL
+    }
     })
   
   
   output$contingency_tab <- renderTable({
+    if(!(input$con1_var %in% input$cols)){
+      print("Please select the column you want to make a contingency table on in the Data Download Tab.")
+    } else{
     contingency_table()
+    }
   })
   
-  #output$con2_opt <- renderUI({
-    #req(input$summary, input$con_tab)
-    #if (input$summary == "Contingency Tables" && input$con_tab == "Two Way") {
-     # checkboxGroupInput("con2_var", "Choose two variables for a Two Way Contingency Table",
-      #            choices = c("UN Member", "Independence", "Car Side Driving", "Landlocked", "Region", "Subregion"))
-    #} else {
-     # NULL
-    #}
-  #})
+  output$con2_opt <- renderUI({
+    req(input$summary, input$con_tab)
+    if (input$summary == "Contingency Tables" && input$con_tab == "Two Way") {
+      tagList(
+        radioButtons("cat1_tab", "Choose your first variable", 
+                     choices = c("Independence", "UN_Member", "Car_Side_Driving",
+                                 "Landlocked", "Region", "Subregion")),
+        radioButtons("cat2_tab", "Choose your second variable",
+                     choices = c("Independence", 
+                                 "UN_Member",
+                                 "Car_Side_Driving",
+                                 "Landlocked", 
+                                 "Region",
+                                 "Subregion")
+        )
+      )
+    } else {
+      NULL
+    }
+  })
   
-  #contingency_table <- reactive({
-   # req(input$con2_var)
-    #con_variable <- input$con1_var
-    #con_table <- as.data.frame(table(filtered_data()[[con_variable]]))
-    #colnames(con_table) <- c(con_variable, "Count")
-    #return(con_table)
-  #})
+  two_contingency_table <- reactive({
+    req(input$summary, input$con_tab, input$cat1_tab & input$cat2_tab)
+    if(input$summary == "Contingency Tables" & input$con_tab == "Two Way"){
+      cat1_variable <- input$cat1_tab
+      cat2_variable <- input$cat2_tab
+      two_cat_data <- filtered_data()
+      
+      
+      con_two_table <- table(two_cat_data[[cat1_variable]], two_cat_data[[cat2_variable]])
+      return(con_two_table)
+    } else{
+      NULL
+    }
+  })
   
-  output$contingency_tab <- renderTable({
-    contingency_table()
+  output$contingency_two_tab <- renderTable({
+    two_contingency_table()
   })
   
   
@@ -352,7 +402,7 @@ output$filtered_data <- renderDataTable({
              fill = "Area") +
         geom_treemap_text(color = "black", place = "center", grow = TRUE)
     } else{
-      print("Make sure you selected the population or area columns from the data exploration tab!")
+      NULL
     }
   })
   
@@ -361,6 +411,28 @@ output$filtered_data <- renderDataTable({
   })
   
   
+output$scatter_opt <- renderUI({
+    req(input$summary, input$graph)
+    if(input$summary == "Graphical Displays" && input$graph == "Scatterplot"){
+        selectInput("facet_var", "Faceting Variable",
+                    choices = c("Region", 
+                                "Subregion",
+                                "UN_Member",
+                                "Car_Side_Driving",
+                                "Independence",
+                                "Landlocked"))
+    } else{
+        NULL
+      }
+  })
+output$facet_scatter <- renderPlot({
+  if(input$summary == "Graphical Displays" & input$graph == "Scatterplot"){
+    get_scatter(filtered_data(), input$facet_var)
+  } else {
+    NULL
+  }
+})
+
   
   
   output$hist_opt <- renderUI({
@@ -371,7 +443,8 @@ output$filtered_data <- renderDataTable({
                      choices = c("Population", "Area")),
         radioButtons("cat_sum", "Choose a categorical variable to facet",
                      choices = c("Independence", 
-                                 "UN Membership", 
+                                 "UN_Member",
+                                 "Car_Side_Driving",
                                  "Landlocked", 
                                  "Region",
                                  "Subregion"))
@@ -381,46 +454,49 @@ output$filtered_data <- renderDataTable({
     }
   })
   
-  
-  
-  output$barchart_opt <- renderUI({
-    req(input$summary, input$graph)
-    if(input$summary == "Graphical Displays" && input$graph == "Bar Chart"){
-      checkboxGroupInput("barchart_var", "Choose two categorical variables for Bar Chart",
-                         choices = c("Independence", 
-                                     "UN_Member", 
-                                     "Region", 
-                                     "Subregion", 
-                                     "Car_Side_Driving"))
+  output$facet_histogram <- renderPlot({
+    if(input$summary == "Graphical Displays" & input$graph == "Histograms"){
+      get_histogram(filtered_data(), input$num_sum, input$cat_sum)
     } else {
       NULL
     }
   })
   
-  bar_plot <- reactive({
-    req(input$barchart_var, input$summary, input$graph)
-    bar1 <- input$barchart_var[1]
-    bar2 <- input$barchart_var[2]
-    browser()
-    bar_data <- as.data.frame(filtered_data())
-    
-    
-    if(input$summary == "Graphical Displays" & input$graph == "Bar Chart"){
-      get_bar(bar_data, bar1, bar2)
-     } else {
-       NULL
-     }
+  
+  
+  
+  output$barchart_opt <- renderUI({
+    req(input$summary, input$graph)
+    if(input$summary == "Graphical Displays" && input$graph == "Bar Chart"){
+      tagList(
+        radioButtons("cat1", "Choose your first variable", 
+                     choices = c("Independence", "UN_Member", "Car_Side_Driving",
+                                 "Landlocked", "Region", "Subregion")),
+        radioButtons("cat2", "Choose your second variable",
+                     choices = c("Independence", 
+                                 "UN_Member",
+                                 "Car_Side_Driving",
+                                 "Landlocked", 
+                                 "Region",
+                                 "Subregion")
+        )
+      )
+    } else {
+      NULL
+    }
   })
   
   output$bar_graph <- renderPlot({
-    bar_plot()
+    if(input$summary == "Graphical Displays" & input$graph == "Bar Chart"){
+    get_bar(filtered_data(), input$cat1, input$cat2)
+    } else {
+      NULL
+    }
   })
   
   
+  
 } 
-  
-  
-  
   
 
   
