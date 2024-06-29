@@ -475,33 +475,39 @@ output$download <- downloadHandler(
   })
   
   
-  
-  
+  #Now for numeric summaries! If numerical summaries is selected, this will call the get_num_sum function above to generate some numerical summaries at each grouping of a categorical variable.
   numeric_summaries <- reactive({
     req(input$summary, input$num_sum, input$cat_sum)
     if(input$summary == "Numerical Summaries"){
+      #Store the input$num_sum, input$cat_sum, and filtered_data() to make it a bit cleaner.
       numeric_variable <- input$num_sum
       categorical_variable <- input$cat_sum
       dataset <- filtered_data()
+      #Drop any missing values for either the categorical or quantitative variables.
+      dataset <- dataset |>
+        drop_na(numeric_variable) |> 
+        drop_na(categorical_variable)
       
+      #Apply the get_num_sum function. Use get() to access the variables since they are being passed as a character string.
       tibble_sum <- get_num_sum(dataset, get(numeric_variable), get(categorical_variable))
+      #Assign the first column name to be the categorical variable to make the grouping more clear.
       colnames(tibble_sum)[1] <- categorical_variable
       return(tibble_sum)
       
     }
   })
   
-
+#Actually render the table by calling numeric_summaries() from above and pair it with a tableOutput in the UI file.
   output$numeric_sum <- renderTable({
     numeric_summaries()
   })
   
   
-  
-  
+#If Tree Map is selected from the graphical display, then create a dropdown box to select the type of variable.
   output$treemap_opt <- renderUI({
     req(input$summary, input$graph)
     if (input$summary == "Graphical Displays" && input$graph == "Tree Map") {
+      #Call this selection "treemap_var" internally and label as "Choose a variable for Tree Map"
       selectInput("treemap_var", "Choose a variable for Tree Map",
                   choices = c("Population", "Area"))
     } else{
@@ -509,37 +515,53 @@ output$download <- downloadHandler(
     }
   })
   
+  
+  #Create the graph in a reactive context. Use if/else logic based on the selection for treemap_var.
   treemap_graph <- reactive({
     req(input$treemap_var, input$summary, input$graph)
+    #Store the choice from the dropdown box as tree_var.
     tree_var <- input$treemap_var
     
+    #If population is selected, initialize a plot where the area (size of rectangle) and fill (color) is connected to population. I chose to do this all with one quantitative variable even though you can do it with multiple because I felt it was easier to see the difference and focus on one variable. The story of the data became a bit more murky with too much going on. 
     if(input$summary == "Graphical Displays" && input$graph == "Tree Map" & tree_var == "Population"){
       ggplot(filtered_data(), aes(area = Population, fill = Population, label = Country_Name))+
+        #Add a tree map layer. Note that this is from the treemapify package.
         geom_treemap()+
+        #Create the coloring scheme. Low populations will be lighter with higher values being darker.
         scale_fill_gradient(low = "lightpink", high = "red") +
+        #Create a title and define the key as filling by Population as well. 
         labs(title = "Population Treemap",
              fill = "Population") +
+        #Change color of the text to black to make it easier to see. Place it in the center. grow= TRUE means it grows with the size of the rectangle.
         geom_treemap_text(color = "black", place = "center", grow = TRUE)
+      #If area is selected, initialize a plot where the area (size of rectangle) and fill (color) is connected to area.
     } else if(input$summary == "Graphical Displays" & input$graph == "Tree Map" & tree_var == "Area"){
       ggplot(filtered_data(), aes(area = Area, fill = Area, label = Country_Name))+
+        #Add a tree map layer. 
         geom_treemap()+
+        #Create the coloring scheme. Low areas will be lighter with higher values being darker.
         scale_fill_gradient(low = "lightpink", high = "red") +
+        #Create a title and define the key as filling by Area as well. 
         labs(title = "Area Treemap",
              fill = "Area") +
+        #Change color of the text to black to make it easier to see. Place it in the center. grow= TRUE means it grows with the size of the rectangle.
         geom_treemap_text(color = "black", place = "center", grow = TRUE)
     } else{
       NULL
     }
   })
   
+  #Actually render the plot by calling treemap_graph. Pair this with plotOutput() in the UI file to actually make the plot. Pass through with the name tree_graph.
   output$tree_graph <- renderPlot({
     treemap_graph()
   })
   
   
+#If scatterplot is chosen as the Graphical Display option, provide additional options to create a faceting variable for the scatterplot.
 output$scatter_opt <- renderUI({
     req(input$summary, input$graph)
     if(input$summary == "Graphical Displays" && input$graph == "Scatterplot"){
+      #Store this value internally as facet_var. Label with "Faceting Variable."
         selectInput("facet_var", "Faceting Variable",
                     choices = c("Region", 
                                 "Subregion",
@@ -551,23 +573,27 @@ output$scatter_opt <- renderUI({
         NULL
       }
   })
+
+#Actually create the plot (paired with plotOutput) by calling the get_scatter function in the renderPlot. The x and y being used are population and area because those are the only two quantitative variables. Create all combinations at each level of the faceting variable selected. 
 output$facet_scatter <- renderPlot({
   if(input$summary == "Graphical Displays" & input$graph == "Scatterplot"){
+    #Call the get_scatter function. Use the filtered_data() that was stored and the facet variable chosen.
     get_scatter(filtered_data(), input$facet_var)
   } else {
     NULL
   }
 })
 
-  
-  
+
+#Create the options for the histogram if the "Histograms" option was selected.   
   output$hist_opt <- renderUI({
     req(input$summary, input$graph)
     if (input$summary == "Graphical Displays" && input$graph == "Histograms"){
       tagList(
-        radioButtons("num_sum", "Choose a numeric variable", 
+        #Have two radio Buttons of options for a numeric variable and a quantitative variable. Internally store these as num_hist and cat_hist with display names of "Choose a numeric variable" and "Choose a categorical variable to facet".
+        radioButtons("num_hist", "Choose a numeric variable", 
                      choices = c("Population", "Area")),
-        radioButtons("cat_sum", "Choose a categorical variable to facet",
+        radioButtons("cat_hist", "Choose a categorical variable to facet",
                      choices = c("Independence", 
                                  "UN_Member",
                                  "Car_Side_Driving",
@@ -580,21 +606,23 @@ output$facet_scatter <- renderPlot({
     }
   })
   
+  #Actaully render the plot (with the plotOutput in the UI file) if those selections are chosen.
   output$facet_histogram <- renderPlot({
     if(input$summary == "Graphical Displays" & input$graph == "Histograms"){
-      get_histogram(filtered_data(), input$num_sum, input$cat_sum)
+      #Call the get_histogram function. Use the stored filtered_data() dataset and the options chosen with the radio buttons for the numeric and categorical variables.
+      get_histogram(filtered_data(), input$num_hist, input$cat_hist)
     } else {
       NULL
     }
   })
   
   
-  
-  
+  #Create a dynamic UI element called barchart_opt (pair with uiOutput in the UI file) that allows options for the bar chart if bar chart is selected.  
   output$barchart_opt <- renderUI({
     req(input$summary, input$graph)
     if(input$summary == "Graphical Displays" && input$graph == "Bar Chart"){
       tagList(
+        #Give two radio buttons internally called cat1 and cat2 to give options for the two categorical variables to create a stacked bar chart in the renderPlot below.
         radioButtons("cat1", "Choose your first variable", 
                      choices = c("Independence", "UN_Member", "Car_Side_Driving",
                                  "Landlocked", "Region", "Subregion")),
@@ -612,8 +640,10 @@ output$facet_scatter <- renderPlot({
     }
   })
   
+  #Use renderPlot (and plotOutput in the UI file) to actually create the stacked bar chart.
   output$bar_graph <- renderPlot({
     if(input$summary == "Graphical Displays" & input$graph == "Bar Chart"){
+      #Use the stored filtered_data() dataset and utilize the two options chosen by the radio buttons in the element above. Call the get_bar() function created above.
     get_bar(filtered_data(), input$cat1, input$cat2)
     } else {
       NULL

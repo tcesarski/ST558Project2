@@ -38,9 +38,12 @@ ui <- dashboardPage(
                   ),
                 box(
                     title = "Purpose of Tabs",
-                    "There are two additional tabs in this app: The Data Downlaod tab and the Data Exploration tab. The Data Download tab will allow you to specify changes to the data you want and display the data selected. You can also save this data as a file. Note: There are no subregions for the antarctic region so the table will not generate if subregion is selected. The Data Exploration tab will allow you to produce graphical and numerical summaries based on this data.")
-              )
-            ),
+                    "There are two additional tabs in this app: The Data Downlaod tab and the Data Exploration tab. The Data Download tab will allow you to specify changes to the data you want and display the data selected. You can also save this data as a file. The Data Exploration tab will allow you to produce graphical and numerical summaries based on this data."),
+                box(
+                  title = "Information about the Variables",
+                  "Regions and Subregions are defined by the United Nations geoscheme which divides the world into 6 regions and 22 subregions. Languages includes all languages for that country. These are not mutually exclusive - a country can have more than one official language. Therefore when searching by language a country could come up in more than one language category. Area is reported in square miles. UN_Member is if they are a member of the United Nations. Car_Side_Driving is which side of the street they drive on. Note: There are no subregions for the Antarctic region so the table will not generate if subregion is selected."),
+                )
+              ),
     #In the download tab have two fluid rows of 6 & 6 (add to 12). Have a dropdown box to choose the method to filter by. Internal name is filter and visual name is "Filter by:".
       tabItem(tabName = "download",
               fluidRow(
@@ -85,13 +88,13 @@ ui <- dashboardPage(
                   tableOutput("contingency_tab"),
                   tableOutput("contingency_two_tab"),
                   tableOutput("numeric_sum"),
-                  conditionalPanel("input.summary == 'Graphical Displays'",
+                  conditionalPanel("input.graph == 'Tree Map'",
                                    plotOutput("tree_graph")),
-                  conditionalPanel("input.summary == 'Graphical Displays'",
+                  conditionalPanel("input.graph== 'Bar Chart'",
                                    plotOutput("bar_graph")),
-                  conditionalPanel("input.summary == 'Graphical Displays'",
+                  conditionalPanel("input.graph == 'Histograms'",
                                    plotOutput("facet_histogram")),
-                  conditionalPanel("input.summary == 'Graphical Displays'",
+                  conditionalPanel("input.graph == 'Scatterplot'",
                                    plotOutput("facet_scatter"))
                 )
               )
