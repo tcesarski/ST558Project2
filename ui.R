@@ -38,7 +38,7 @@ ui <- dashboardPage(
                   ),
                 box(
                     title = "Purpose of Tabs",
-                    "There are two additional tabs in this app: The Data Downlaod tab and the Data Exploration tab. The Data Download tab will allow you to specify changes to the data you want and display the data selected. You can also save this data as a file. The Data Exploration tab will allow you to produce graphical and numerical summaries based on this data.")
+                    "There are two additional tabs in this app: The Data Downlaod tab and the Data Exploration tab. The Data Download tab will allow you to specify changes to the data you want and display the data selected. You can also save this data as a file. Note: There are no subregions for the antarctic region so the table will not generate if subregion is selected. The Data Exploration tab will allow you to produce graphical and numerical summaries based on this data.")
               )
             ),
     #In the download tab have two fluid rows of 6 & 6 (add to 12). Have a dropdown box to choose the method to filter by. Internal name is filter and visual name is "Filter by:".
@@ -54,13 +54,13 @@ ui <- dashboardPage(
                     checkboxGroupInput("cols", "Columns:",
                                        choices = c("Capital", "Region", "Subregion", "Area", "Population", "Car_Side_Driving", "Independence", "Landlocked", "UN_Member")))
                 ),
-  #uiOutput from renderUI in the server file.
-                uiOutput("filter")
+  #uiOutput from renderUI in the server file. This is where the user selected what the country name, etc. from the secondary dropdown box.
+                uiOutput("choice")
               ),
   #Add in a download button.
               fluidRow(
               downloadButton("download", "Download Data"),
-              dataTableOutput("filtered_data")
+              dataTableOutput("data_table")
               )
             ),
   #Next tab is internally called explore.

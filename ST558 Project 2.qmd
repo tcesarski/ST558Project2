@@ -164,7 +164,7 @@ get_region_info("asia")
 get_region_info("oceania")
 get_region_info("europe")
 get_region_info("americas")
-get_region_info("antarctic")
+get_region_info("antarctic", "Subregion")
 
 ```
 
@@ -242,7 +242,9 @@ return(tibble_info)
 }
 get_pop_info(1000, 2000)
 
-get_pop_info(10, 10000)
+popinfo <- get_pop_info(10, 100000000)
+help("downloadHandler")
+
 
 ```
 
