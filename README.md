@@ -20,5 +20,7 @@ Here is a function that will allow you to read in all required packages - make s
   library(treemapify)
 }```
 
+```shiny::runGitHub("tcesarski/558Project2"")```
+
 
 The purpose of this app is to investigate data of countries around the world. Through this app, you can investigate numerical and graphical summaries of the data from different countries through examining variables such as regions, subregions, UN Membership, population, and more! 
