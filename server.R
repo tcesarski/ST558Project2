@@ -332,7 +332,8 @@ output$data_table <- renderDataTable({
 output$download <- downloadHandler(
     filename = "countries_data.csv",
     content = function(file) {
-      write.csv(filtered_data(), file)
+      download_data <- filtered_data()
+      write.csv(download_data, file)
     }
   )
 
