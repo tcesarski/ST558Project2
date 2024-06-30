@@ -3,6 +3,8 @@ library(shiny)
 library(shinydashboard)
 #Set up dashboard page
 ui <- dashboardPage(
+  #Updated to purple background because it's prettier.
+  skin = "purple",
   #Title as "Countries Project"
   dashboardHeader(title = "Countries Project"),
   #Create a sidebar with the tabs. Name tabs as "About", "Data Download", and "Data Exploration". Icons were found on fontawesome.
