@@ -21,7 +21,7 @@ read_in_pkgs <- function(){
   library(treemapify)
 }
 
-shiny::runGitHub("tcesarski/ST558Project2")
+shiny::runGitHub("ST558Project2", "tcesarski")
 
 
 The purpose of this app is to investigate data of countries around the world. Through this app, you can investigate numerical and graphical summaries of the data from different countries through examining variables such as regions, subregions, UN Membership, population, and more! 
