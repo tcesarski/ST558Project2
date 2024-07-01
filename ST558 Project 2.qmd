@@ -168,6 +168,7 @@ get_region_info("oceania")
 eur_info <- get_region_info("europe")
 get_region_info("americas")
 get_region_info("antarctic", "Subregion")
+get_region_info("europe")
 
 ```
 

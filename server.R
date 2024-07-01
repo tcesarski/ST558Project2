@@ -83,6 +83,41 @@ get_region_info <- function(region_name, chosen_cols){
   
 }
 
+get_subregion_info <- function(subregion_name, chosen_cols){
+  #Store the base url before the inputs as start_url.
+  start_url <- "https://restcountries.com/v3.1/subregion/"
+  #Based on documentation provided on API, paste together formatting of initial url and region name.
+  encoded_sub_name <- URLencode(subregion_name)
+  url <- paste0(start_url, 
+                encoded_sub_name)
+  #Use the GET function to contact API.
+  return_data <- GET(url)
+  #Parse through data using fromJSON function from jsonlite package.
+  parsed_data <- fromJSON(rawToChar(return_data$content))
+  #Convert the information to a tibble.
+  tibble_info <- as_tibble(parsed_data)
+  
+  #Name the columns of the tibble.
+  tibble_info <- tibble(
+    Country_Name = tibble_info$name$common,
+    Capital = tibble_info$capital,
+    Region = tibble_info$region,
+    Subregion = tibble_info$subregion,
+    Area = tibble_info$area,
+    Population = tibble_info$population,
+    Car_Side_Driving = tibble_info$car$side,
+    Independence = tibble_info$independent,
+    Landlocked = tibble_info$landlocked,
+    UN_Member = tibble_info$unMember) |>
+    
+    #Write over the tibble_info by selecting the Country_Name column always and any chosen columns. Put in order alphabetically to make easier to find certain countries.
+    arrange(Country_Name) |>
+    select(Country_Name, chosen_cols)
+  
+  return(tibble_info)
+  
+}
+
 #Create a get language info function that takes in a language name and columns and returns all countries from that speak a particular language.
 get_language_info <- function(language_name, chosen_cols){
   #Store the base url before the inputs as start_url.
@@ -275,6 +310,9 @@ server <- function(input, output, session) {
     } else if(input$filter == "Region"){
       selectInput("region", "Region Name",
                          choices = c("Africa","Antarctic", "Americas", "Asia", "Europe", "Oceania"))
+    } else if(input$filter == "Subregion"){
+      selectInput("subregion", "Subregion Name",
+                  choices = c("Northern Africa", "Eastern Africa", "Southern Africa", "Middle Africa", "Western Africa", "Caribbean", "South America", "Central America", "North America", "Southern Asia", "Western Asia", "South-Eastern Asia", "Eastern Asia", "Central Asia", "Southeast Europe", "Southern Europe", "Central Europe", "Eastern Europe", "Western Europe", "Northern Europe", "Polynesia", "Australia and New Zealand", "Melanesia", "Micronesia"))
       #If the "Choose Filtering Method Box" (internally stored as filter) is selected as Language, then display another dropdown box for selecting the language name. Again I chose to type them all out and use a dropdown box to avoid issues with special characters and spelling. Have the display name be "Language Name" and store internally as language.
     } else if(input$filter == "Language"){
       selectInput("language", "Language Name",
@@ -304,6 +342,8 @@ filtered_data <- reactive({
   } else if (input$filter == "Region") {
     #If Region was selected, apply get_region_info function. Use the Region Name (internally stored as region) as the first input.
     get_region_info(input$region, input$cols)
+  } else if(input$filter == "Subregion") {
+    get_subregion_info(input$subregion, input$cols)
   } else if (input$filter == "Language") {
     #If Language was selected, apply get_language_info function. Use the Language Name (internally stored as language) as the first input.
     get_language_info(input$language, input$cols)

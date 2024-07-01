@@ -47,7 +47,7 @@ ui <- dashboardPage(
                 column(6,
                 box(title = "Choose Filtering Method",
                     selectInput("filter", "Filter by:", 
-                                choices = c("Country Name", "Region", "Language", "Population", "Area")))),
+                                choices = c("Country Name", "Region", "Subregion", "Language", "Population", "Area")))),
   #In the next box, have a checkbox where the user can check as many boxes as wanted and store those as internal name of cols and display name of "Columns:". Default is no columns selected.
                 column(6, 
                 box(title = "Select Columns",
