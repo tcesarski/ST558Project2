@@ -18,7 +18,7 @@ ui <- dashboardPage(
   ),
   dashboardBody(
     tabItems(
-  #In the "About" Tab, have a box called with an image and title it "Countries of the World.", Have another box with about this app and another with the purpose of the tabs.
+  #In the "About" Tab, have a box with an image and title it "Countries of the World.", Have another box with about this app and another with the purpose of the tabs.
       tabItem(tabName = "about",
               fluidRow(
                 box(
@@ -34,11 +34,11 @@ ui <- dashboardPage(
                   ),
                 box(
                     title = "Purpose of Tabs",
-                    "There are two additional tabs in this app: The Data Downlaod tab and the Data Exploration tab. The Data Download tab will allow you to specify changes to the data you want and display the data selected. You can also save this data as a file. The Data Exploration tab will allow you to produce graphical and numerical summaries based on this data."),
+                    "There are two additional tabs in this app: The Data Download tab and the Data Exploration tab. The Data Download tab will allow you to specify changes to the data you want and display the data selected. You can also save this data as a file. The Data Exploration tab will allow you to produce graphical and numerical summaries based on this data."),
                 box(
                   #Added some extra information about the variables.
                   title = "Information about the Variables",
-                  "Regions and Subregions are defined by the United Nations geoscheme which divides the world into 6 regions and 22 subregions. Languages includes all languages for that country. These are not mutually exclusive - a country can have more than one official language. Therefore when searching by language a country could come up in more than one language category. Area is reported in square miles. UN_Member is if they are a member of the United Nations. Car_Side_Driving is which side of the street they drive on. Note: There are no subregions for the Antarctic region so the table will not generate if subregion is selected."),
+                  "Regions and Subregions are defined by the United Nations geoscheme which divides the world into 6 regions. They are then further divided into 24 subregions according to the REST Countries API. Languages includes all languages for that country. These are not mutually exclusive - a country can have more than one official language. Therefore when searching by language a country could come up in more than one language category. Area is reported in square miles. UN_Member is if they are a member of the United Nations. Car_Side_Driving is which side of the street they drive on. Note: There are no subregions for the Antarctic region so the table will not generate if subregion is selected."),
                 )
               ),
     #In the download tab have two fluid rows of 6 & 6 (add to 12). Have a dropdown box to choose the method to filter by. Internal name is filter and visual name is "Filter by:".
