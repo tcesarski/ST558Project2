@@ -7,7 +7,7 @@ ui <- dashboardPage(
   skin = "purple",
   #Title as "Countries Project"
   dashboardHeader(title = "Countries Project"),
-  #Create a sidebar with the tabs. Name tabs as "About", "Data Download", and "Data Exploration". Icons were found on fontawesome.
+  #Create a sidebar with the tabs. Name tabs as "About", "Data Download", and "Data Exploration". Icons were found on fontawesome. Tried to make icons match what the tab was related to. 
   dashboardSidebar(
     sidebarMenu(
       id = "tabs",
@@ -23,17 +23,20 @@ ui <- dashboardPage(
               fluidRow(
                 box(
                   title = "Countries of the World",
+                  #Add an image. Added this file to www folder within this repo.
                   img(src = 'worldflags.png', height = 300, width = 300)
                 ),
                 box(
                   title = "About This App",
                   "This application allows you to explore data related to countries and create plots, contingency tables, and numeric summaries on different countries individually, regions, subregions, or countries that speak a particular language. The data comes from the REST Countries API. More data about the REST Countries API and its endpoints can be found here:",
+                  #Add a tag that links to information about the API.
                   tags$a(href = "https://gitlab.com/restcountries/restcountries", "REST Countries API")
                   ),
                 box(
                     title = "Purpose of Tabs",
                     "There are two additional tabs in this app: The Data Downlaod tab and the Data Exploration tab. The Data Download tab will allow you to specify changes to the data you want and display the data selected. You can also save this data as a file. The Data Exploration tab will allow you to produce graphical and numerical summaries based on this data."),
                 box(
+                  #Added some extra information about the variables.
                   title = "Information about the Variables",
                   "Regions and Subregions are defined by the United Nations geoscheme which divides the world into 6 regions and 22 subregions. Languages includes all languages for that country. These are not mutually exclusive - a country can have more than one official language. Therefore when searching by language a country could come up in more than one language category. Area is reported in square miles. UN_Member is if they are a member of the United Nations. Car_Side_Driving is which side of the street they drive on. Note: There are no subregions for the Antarctic region so the table will not generate if subregion is selected."),
                 )
@@ -45,22 +48,23 @@ ui <- dashboardPage(
                 box(title = "Choose Filtering Method",
                     selectInput("filter", "Filter by:", 
                                 choices = c("Country Name", "Region", "Language", "Population", "Area")))),
-  #In the next box, have a checkbox where the user can check as many boxes as wanted and store those as internal name of cols and display name of "Columns:".
+  #In the next box, have a checkbox where the user can check as many boxes as wanted and store those as internal name of cols and display name of "Columns:". Default is no columns selected.
                 column(6, 
                 box(title = "Select Columns",
                     checkboxGroupInput("cols", "Columns:",
                                        choices = c("Capital", "Region", "Subregion", "Area", "Population", "Car_Side_Driving", "Independence", "Landlocked", "UN_Member")))
                 ),
-  #uiOutput from renderUI in the server file. This is where the user selected what the country name, etc. from the secondary dropdown box.
+                #uiOutput from renderUI in the server file. This is where the user selected what the country name, region name, etc. from the secondary dropdown box.
                 uiOutput("choice")
               ),
-  #Add in a download button.
+              #Add in a download button.
               fluidRow(
               downloadButton("download", "Download Data"),
+              #Output the data table.
               dataTableOutput("data_table")
               )
             ),
-  #Next tab is internally called explore.
+      #Next tab is internally called explore.
       tabItem(tabName = "explore",
               #Use sidebarLayout with sidebarPanel and mainPanel so that it doesn't all stack on top of each other.
               sidebarLayout(
@@ -82,6 +86,7 @@ ui <- dashboardPage(
                   tableOutput("contingency_tab"),
                   tableOutput("contingency_two_tab"),
                   tableOutput("numeric_sum"),
+                  #Add conditional panels that only appear based on the input type of graph. Use plotOutput with renderPlot from server file.
                   conditionalPanel("input.graph == 'Tree Map'",
                                    plotOutput("tree_graph")),
                   conditionalPanel("input.graph== 'Bar Chart'",

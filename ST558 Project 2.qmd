@@ -3,6 +3,8 @@ title: "ST 558 Project 2"
 format: html
 author: "Taylor Cesarski"
 ---
+This page represents my beginning stages of work, thought process when generating static functions and plots, trying different plots, trying special cases with spaces, etc. All parts that were used in the final coding are in the server or UI file with appropriate commenting there. I just left this here to show my initial work. This section may be a bit messy in terms of things deleted that were not used or fixed later in the server/UI files. For example, I did not end up using my wrapper function created since I instead used if/else logic and did not use some graphs I created due to extreme outliers distorting the graphs.
+
 ```{r}
 install.packages("tidyverse")
 install.packages("shiny")
@@ -10,6 +12,10 @@ install.packages("jsonlite")
 install.packages("httr")
 install.packages("treemapify")
 install.packages("shinydashboard")
+
+
+
+
 
 
 library(shiny)
@@ -38,12 +44,9 @@ print(url)
   return_data <- GET(url)
   #Parse through data using fromJSON function from jsonlite package.
   parsed_data <- fromJSON(rawToChar(return_data$content))
-  #Convert the article information to a tibble.
   exact_match <- parsed_data$name$common == country_name
   tibble_info <- as_tibble(parsed_data[exact_match, ])
 
-  
-  #Return ed_info tibble.
   tibble_info <- tibble(
     Country_Name = tibble_info$name$common,
     #Deal with missing values for capital.
@@ -162,7 +165,7 @@ return(tibble_info)
 get_region_info("africa")
 get_region_info("asia")
 get_region_info("oceania")
-get_region_info("europe")
+eur_info <- get_region_info("europe")
 get_region_info("americas")
 get_region_info("antarctic", "Subregion")
 
@@ -185,7 +188,6 @@ get_language_info <- function(language_name){
 #Convert the article information to a tibble.
 tibble_info <- as_tibble(parsed_data)
 
-#Return ed_info tibble.
 tibble_info <- tibble(
   Country_Name = parsed_data$name$common,
   Capital = as.character(parsed_data$capital),
@@ -484,8 +486,6 @@ two_contingency_table <- reactive({
     }
   })
   
-con_2 <- table(country[[""]])
-
 country
 as_tibble(table(country[["UN_Member"]], country[["Landlocked"]]))
 
@@ -500,7 +500,7 @@ country |>
 
 
 help(pivot_wider)
-help(as.tibble)
+help(as_tibble)
 
 
 
@@ -530,9 +530,7 @@ table(country[["Landlocked"]])
       
     }
   })
-  
-  #working statically
-  tib_sum <- table(country[["Car_Side_Driving"]], country[["UN_Member"]])
+    tib_sum <- table(country[["Car_Side_Driving"]], country[["UN_Member"]])
   colnames(tib_sum)[1] <- "UN_Member"
   tib_sum
 
@@ -552,28 +550,26 @@ data_input
 
 #Create population treemap of top x number of countries.
 
-pop_treemap <- function(input_data, x){
-  df_arranged <- arrange(input_data, -Population)
-  df_top <- head(df_arranged, x)
-  g <- ggplot(df_top, aes(area = Population, fill = Population, label = Country_Name)) +
+pop_treemap <- function(input_data, cat_tree){
+  g <- ggplot(input_data |> drop_na(cat_tree), aes(area = Population, fill = Population, label = Country_Name)) +
   geom_treemap() +
   scale_fill_gradient(low = "lightpink", high = "red") +
-  labs(title = "Population Treemap",
+  labs(title = paste0("Population Treemap by ", cat_tree),
        fill = "Population") +
-  geom_treemap_text(color = "black", place = "center", grow = TRUE)
+  geom_treemap_text(color = "black", place = "center", grow = TRUE) +
+    facet_wrap(cat_tree)
   
   print(g)
 }
 
-pop_treemap(data_input, 10)
-
+pop_treemap(eur_info, "Independence")
 
 #Create area treemap of top x number of countries.
 
 area_treemap <- function(input_data, x){
   df_arranged <- arrange(input_data, -Area)
   df_top <- head(df_arranged, x)
-  g <- ggplot(df_top, aes(area = Area, fill = Area, label = Country_Name)) +
+  g <- ggplot(df_top |> drop_na(x), aes(area = Area, fill = Area, label = Country_Name)) +
   geom_treemap() +
   scale_fill_gradient(low = "lightpink", high = "red") +
   labs(title = "Area Treemap",
@@ -604,7 +600,7 @@ wrap_treemap("population", data_input, 30)
 # Final Plot # 2: Faceting and dynamically generating histogram.
 
 Get boxplots of population and area by region or subregion.
-```{r, error = TRUE, fig.height=10, fig.width=12}
+```{r, error = TRUE}
 #Get histograms of population by region.
 library(ggplot2)
 
@@ -709,10 +705,10 @@ get_num_sum <- function(dataframe, num_variable, cat_variable){
 get_num_sum(country, Population, UN_Member)
 
 
-
-
-
-
+help("sidebarMenu")
+#id comes first, then menuItems
+help("dashboardBody")
+#include tab items, boxes
 
 #Make boxplot.
 
@@ -780,7 +776,7 @@ country
 get_country_info()
 get_country_info("All Countries", 1:5)
 ```
-
+Working on code for readme file.
 ```{r}
 req_packages <- c("tidyverse", "shiny", "shinydashboard", "jsonlite", "httr", "treemapify")
 
@@ -803,7 +799,7 @@ rm(list = ls())
   library(treemapify)
 
 
-
+help("tags")
 
 ```
 

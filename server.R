@@ -2,8 +2,10 @@ library(jsonlite)
 library(httr)
 library(tidyverse)
 library(treemapify)
-#Create get_country_info function that takes in a name and then the columns you want.
 
+#Static functions are added up here before the server and then utilized in the server. 
+
+#Create get_country_info function that takes in a name and then the columns you want.
 get_country_info <- function(country_name, chosen_cols){
   #Store the base url before the inputs as start_url.
   start_url <- "https://restcountries.com/v3.1/"
@@ -16,7 +18,7 @@ get_country_info <- function(country_name, chosen_cols){
   return_data <- GET(url)
   #Parse through data using fromJSON function from jsonlite package.
   parsed_data <- fromJSON(rawToChar(return_data$content))
-  #Get an exact match by making sure the name equals exactly the inputted country name. Without this, if you chose "Dominica" for example it would return both Dominica and Dominican Repbulic. I only want it to return one country for this section.
+  #Get an exact match by making sure the name equals exactly the inputted country name. Without this, if you chose "Dominica" for example it would return both Dominica and Dominican Republic. I only want it to return one country for this section. Since I'm going to have a dropdown box for countries, spelling and such shouldn't be an issue.
   exact_match <- parsed_data$name$common == country_name
   #Convert to tibble. Return only rows where there was an exact match found. Return all columns for now. (This will be specified later).
   tibble_info <- as_tibble(parsed_data[exact_match, ])
@@ -40,7 +42,6 @@ get_country_info <- function(country_name, chosen_cols){
     UN_Member = tibble_info$unMember)
   
   #Write over the tibble_info by selecting the Country_Name column always and any chosen columns. 
-  
   tibble_info <- tibble_info |>
     select(Country_Name, chosen_cols)
   
@@ -48,7 +49,6 @@ get_country_info <- function(country_name, chosen_cols){
 }
 
 #Create a get region info function that takes in a region name and columns and returns all countries from that region.
-
 get_region_info <- function(region_name, chosen_cols){
   #Store the base url before the inputs as start_url.
   start_url <- "https://restcountries.com/v3.1/region/"
@@ -84,11 +84,10 @@ get_region_info <- function(region_name, chosen_cols){
 }
 
 #Create a get language info function that takes in a language name and columns and returns all countries from that speak a particular language.
-
 get_language_info <- function(language_name, chosen_cols){
   #Store the base url before the inputs as start_url.
   start_url <- "https://restcountries.com/v3.1/lang/"
-  #Encode in the case of spaces or special characters.
+  #Encode in the case of spaces or special characters that appeared in the names of some languages.
   encode_lang <- URLencode(language_name)
   #Based on documentation provided on API, paste together formatting of initial url and region name.
   url <- paste0(start_url, 
@@ -184,14 +183,13 @@ get_area_info <- function(min_area = 100, max_area = 100000, chosen_cols){
     #Only get those rows that that are greater than or equal to the minimum value and less than or equal to the maximum value.
     filter(Area >= min_area & Area <= max_area) |>
     arrange(Country_Name) |>
-    #Order alphabetically by name and only select name column and any other columsn specified.
+    #Order alphabetically by name and only select name column and any other columns specified.
     select(Country_Name, chosen_cols)
   
   return(tibble_info)
 }
 
 #Create a get bar function. This function takes in a dataset and two categorical variables.
-
 get_bar <- function(data_input, cat1, cat2){
   #Create initial plotting instance by using ggplot. Drop any values where either categorical variable is missing. Use aes_string since the the variables are being passed as strings. 
   ggraph <- ggplot(data_input |> drop_na(cat2) |> drop_na(cat1), aes_string(x = cat1, fill = cat2))
@@ -509,8 +507,17 @@ output$download <- downloadHandler(
     req(input$summary, input$graph)
     if (input$summary == "Graphical Displays" && input$graph == "Tree Map") {
       #Call this selection "treemap_var" internally and label as "Choose a variable for Tree Map"
+      tagList(
       selectInput("treemap_var", "Choose a variable for Tree Map",
-                  choices = c("Population", "Area"))
+                  choices = c("Population", "Area")),
+      selectInput("cat_tree", "Choose a categorical variable to facet with",
+                  choices = c("Independence", 
+                                 "UN_Member",
+                                 "Car_Side_Driving",
+                                 "Landlocked", 
+                                 "Region",
+                                 "Subregion"))
+      )
     } else{
       NULL
     }
@@ -522,31 +529,34 @@ output$download <- downloadHandler(
     req(input$treemap_var, input$summary, input$graph)
     #Store the choice from the dropdown box as tree_var.
     tree_var <- input$treemap_var
+    cat_var <- input$cat_tree
     
     #If population is selected, initialize a plot where the area (size of rectangle) and fill (color) is connected to population. I chose to do this all with one quantitative variable even though you can do it with multiple because I felt it was easier to see the difference and focus on one variable. The story of the data became a bit more murky with too much going on. 
     if(input$summary == "Graphical Displays" && input$graph == "Tree Map" & tree_var == "Population"){
-      ggplot(filtered_data(), aes(area = Population, fill = Population, label = Country_Name))+
+      ggplot(filtered_data() |> drop_na(cat_var), aes(area = Population, fill = Population, label = Country_Name))+
         #Add a tree map layer. Note that this is from the treemapify package.
         geom_treemap()+
         #Create the coloring scheme. Low populations will be lighter with higher values being darker.
         scale_fill_gradient(low = "lightpink", high = "red") +
         #Create a title and define the key as filling by Population as well. 
-        labs(title = "Population Treemap",
+        labs(title = paste0("Population Treemap by ", cat_var),
              fill = "Population") +
         #Change color of the text to black to make it easier to see. Place it in the center. grow= TRUE means it grows with the size of the rectangle.
-        geom_treemap_text(color = "black", place = "center", grow = TRUE)
+        geom_treemap_text(color = "black", place = "center", grow = TRUE) +
+        facet_wrap(cat_var)
       #If area is selected, initialize a plot where the area (size of rectangle) and fill (color) is connected to area.
     } else if(input$summary == "Graphical Displays" & input$graph == "Tree Map" & tree_var == "Area"){
-      ggplot(filtered_data(), aes(area = Area, fill = Area, label = Country_Name))+
+      ggplot(filtered_data() |> drop_na(cat_var), aes(area = Area, fill = Area, label = Country_Name))+
         #Add a tree map layer. 
         geom_treemap()+
         #Create the coloring scheme. Low areas will be lighter with higher values being darker.
         scale_fill_gradient(low = "lightpink", high = "red") +
         #Create a title and define the key as filling by Area as well. 
-        labs(title = "Area Treemap",
+        labs(title = paste0("Area Treemap by ", cat_var),
              fill = "Area") +
         #Change color of the text to black to make it easier to see. Place it in the center. grow= TRUE means it grows with the size of the rectangle.
-        geom_treemap_text(color = "black", place = "center", grow = TRUE)
+        geom_treemap_text(color = "black", place = "center", grow = TRUE) +
+        facet_wrap(cat_var)
     } else{
       NULL
     }
